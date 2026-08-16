@@ -31,16 +31,11 @@ const userSchema = new mongoose.Schema({
     }
 })
 
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function() {
   if (!this.isModified('password')) {
-    return next(); // password unchanged (e.g. just updating name) — skip re-hashing
+    return; // skip hashing, nothing more to do
   }
-  try {
-    this.password = await bcrypt.hash(this.password, 10);
-    next();
-  } catch (err) {
-    next(err); // let Mongoose/your error handler deal with it
-  }
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
 userSchema.methods.comparePassword = async function(candidatePassword) {
