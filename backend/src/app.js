@@ -27,8 +27,8 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', env: env.nodeEnv });
 });
 
-// --- API routes (mount these as you build features) ---
- app.use(`${env.apiPrefix}/auth`, require('./routes/auth.routes'));
+// --- API routes ---
+app.use(`${env.apiPrefix}/auth`, require('./routes/auth.routes'));
 app.use(`${env.apiPrefix}/products`, require('./routes/product.routes'));
 
 // --- 404 + error handler must stay last, in this order ---
