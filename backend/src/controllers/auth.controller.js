@@ -50,10 +50,16 @@ const signin = asyncHandler(async (req, res) =>{
             message : 'Incorrect Credential'
         });
     }
-    const token = generateToken({existingUser});
+    const token = generateToken(existingUser._id);
     res.json({
         token
     })
 })
 
-module.exports = { signup , signin};
+const getMe = asyncHandler(async (req, res) => {
+  res.json({
+    user: req.user
+  });
+});
+
+module.exports = { signup , signin, getMe};
