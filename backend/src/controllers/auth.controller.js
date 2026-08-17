@@ -39,34 +39,22 @@ const signin = asyncHandler(async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  const existingUser = await user.findOne({ email }).select('+password');
+    const existingUser = await user.findOne({email}).select('+password');
+    if(!existingUser){
+        return res.status(401).json({
+            message : 'Incorrect Credential'
+        })
+    }
+    const isMatch = await existingUser.comparePassword(password);
+    if(!isMatch){
+        return res.status(401).json({
+            message : 'Incorrect Credential'
+        });
+    }
+    const token = generateToken({existingUser});
+    res.json({
+        token
+    })
+})
 
-  if (!existingUser) {
-    return res.status(401).json({
-      message: 'Incorrect Credential'
-    });
-  }
-
-  const isMatch = await existingUser.comparePassword(password);
-
-  if (!isMatch) {
-    return res.status(401).json({
-      message: 'Incorrect Credential'
-    });
-  }
-
-  // Pass the user's ID, not the entire user object
-  const token = generateToken(existingUser._id);
-
-  res.json({
-    token
-  });
-});
-
-const getMe = asyncHandler(async (req, res) => {
-  res.json({
-    user: req.user
-  });
-});
-
-module.exports = { signup, signin, getMe };
+module.exports = { signup , signin};
