@@ -5,7 +5,7 @@ const restrictTo = (...allowedRoles)=>{
                 message : 'You do not have permission to perform this action'
             });
         }
-        next;
+        next();
     }
 }
 
