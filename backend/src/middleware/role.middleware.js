@@ -5,11 +5,7 @@ const restrictTo = (...allowedRoles)=>{
                 message : 'You do not have permission to perform this action'
             });
         }
-<<<<<<< HEAD
         next();
-=======
-        next;
->>>>>>> a490129 (feat: add Product model)
     }
 }
 
