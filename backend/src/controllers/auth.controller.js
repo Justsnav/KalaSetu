@@ -2,7 +2,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const user = require('../models/user');
 const generateToken = require('../utils/generateToken');
 
-//signup routes
+// Signup route
 const signup = asyncHandler(async (req, res) => {
   const name = req.body.name;
   const email = req.body.email;
@@ -10,33 +10,34 @@ const signup = asyncHandler(async (req, res) => {
   const role = req.body.role;
 
   const existingUser = await user.findOne({
-    email : email
+    email: email
   });
-  if(existingUser){
+
+  if (existingUser) {
     return res.status(409).json({
-        message : 'User with this email already exists.'
-    })
+      message: 'User with this email already exists.'
+    });
   }
 
   const newUser = await user.create({
-    name : name,
-    email : email,
-    password : password,
-    role : role
-  })
+    name: name,
+    email: email,
+    password: password,
+    role: role
+  });
 
   const token = generateToken(newUser._id);
 
   return res.status(201).json({
-    message : 'user created successfully',
+    message: 'User created successfully',
     token
-  })
+  });
 });
 
-//signin routes
-const signin = asyncHandler(async (req, res) =>{
-    const email = req.body.email;
-    const password = req.body.password;
+// Signin route
+const signin = asyncHandler(async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
 
     const existingUser = await user.findOne({email}).select('+password');
     if(!existingUser){
@@ -50,16 +51,10 @@ const signin = asyncHandler(async (req, res) =>{
             message : 'Incorrect Credential'
         });
     }
-    const token = generateToken(existingUser._id);
+    const token = generateToken({existingUser});
     res.json({
         token
     })
 })
 
-const getMe = asyncHandler(async (req, res) => {
-  res.json({
-    user: req.user
-  });
-});
-
-module.exports = { signup , signin, getMe};
+module.exports = { signup , signin};
