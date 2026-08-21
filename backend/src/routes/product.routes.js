@@ -9,4 +9,9 @@ router.get('/', getAllProducts);
 router.get('/:id', getProductById);
 router.put('/:id', protect, restrictTo('artisan'), updateProduct);
 
+
+
+
+
+
 module.exports = router;
