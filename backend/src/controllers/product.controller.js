@@ -92,4 +92,28 @@ const updateProduct = asyncHandler(async (req, res) => {
   })
 });
 
-module.exports = { createProduct, getAllProducts, getProductById, updateProduct };
+const deleteProduct = asyncHandler(async (req,res)=>{
+  const productId = req.params.id;
+  const artistId = req.user._id;
+  const product = await Product.findById(productId);
+  if(!product){
+    return res.status(404).json({
+      message : "Product Not Found"
+    });
+  }
+
+  if(product.artistId.toString() !== artistId.toString()){
+    return res.status(403).json({
+      message : "You are not authorized to modified this product"
+    });
+  }
+
+  await Product.findByIdAndDelete(productId);
+  res.json({
+    message : "Product Deleted Sucessfully"
+  })
+  
+
+})
+
+module.exports = { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct };
