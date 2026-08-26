@@ -1,10 +1,15 @@
-import React from 'react'
+import { Routes, Route } from 'react-router-dom'
+import LandingPage from './pages/Landing'
+// import Signup from './pages/Signup'
+// import Login from './pages/Login'
 
 const App = () => {
   return (
-    <div>
-      
-    </div>
+    <Routes> 
+      <Route path="/" element={<LandingPage />} />
+      {/* <Route path="/signup/:role" element={<Signup />} /> */}
+      {/* <Route path="/login" element={<Login />} /> */}
+    </Routes>
   )
 }
 
