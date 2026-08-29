@@ -1,1 +1,14 @@
 @import "tailwindcss";
+@layer components {
+    .input-style {
+        @apply w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-3.5 text-sm text-[#f5efe8] outline-none placeholder:text-[#625950] transition focus:border-[#d4af37]/50 focus:bg-white/[0.06];
+    }
+
+    .select-style {
+        @apply w-full appearance-none rounded-lg border border-white/[0.08] bg-[#211b16] px-4 py-3.5 text-sm text-[#f5efe8] outline-none transition focus:border-[#d4af37]/50;
+    }
+
+    .textarea-style {
+        @apply w-full resize-none rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-3.5 text-sm leading-6 text-[#f5efe8] outline-none placeholder:text-[#625950] transition focus:border-[#d4af37]/50 focus:bg-white/[0.06];
+    }
+}
