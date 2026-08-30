@@ -21,6 +21,44 @@ const userSchema = new mongoose.Schema({
         enum: ["buyer", "artisan"],
         default: "buyer"
     },
+    profileImage: {
+        type: String,
+        default: ""
+    },
+    location: {
+        type: String,
+        default: ""
+    },
+    craft: {
+        type: String,
+        default: ""
+    },
+    artForm: {
+        type: String,
+        default: ""
+    },
+    bio: {
+        type: String,
+        default: ""
+    },
+    story: {
+        type: String,
+        default: ""
+    },
+    experience: {
+        type: String,
+        default: ""
+    },
+    phone: {
+        type: String,
+        default: ""
+    },
+    address: {
+        street: { type: String, default: "" },
+        city: { type: String, default: "" },
+        state: { type: String, default: "" },
+        pincode: { type: String, default: "" }
+    },
     createdAt: {
         type: Date,
         default: Date.now

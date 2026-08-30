@@ -1,297 +1,336 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-    Package,
-    ShoppingBag,
-    IndianRupee,
-    Plus,
-    Pencil,
-    Trash2,
-    Eye,
-    User,
+  Package,
+  ShoppingBag,
+  IndianRupee,
+  Plus,
+  Pencil,
+  Trash2,
+  Eye,
+  Sparkles,
+  ArrowRight,
+  ClipboardList
 } from "lucide-react";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
+import Navbar from "../components/Navbar";
 
 const ArtisanDashboard = () => {
-    const navigate = useNavigate();
-    const { logout } = useAuth();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [stats, setStats] = useState({ totalOrders: 0, totalRevenue: 0, itemsSold: 0 });
+  const [loading, setLoading] = useState(true);
 
-    // =========================
-    // GET ARTISAN PRODUCTS
-    // =========================
+  // =========================
+  // GET ARTISAN PRODUCTS & ORDERS
+  // =========================
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch products
+      const prodRes = await api.get("/products");
+      const allProds = prodRes.data.products || prodRes.data.product || [];
+      // Filter for this artisan's products
+      const myProds = allProds.filter(
+        (p) => p.artistId?._id === user?._id || p.artistId === user?._id
+      );
+      setProducts(myProds);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await api.get("/products");
-                setProducts(response.data.product || []);
-            } catch (error) {
-                console.error("Error fetching products:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+      // Fetch artisan orders & stats
+      const orderRes = await api.get("/orders");
+      if (orderRes.data.stats) {
+        setStats(orderRes.data.stats);
+      }
+    } catch (error) {
+      console.error("Error fetching artisan dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        fetchProducts();
-    }, []);
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
 
-    // =========================
-    // DELETE PRODUCT
-    // =========================
+  // =========================
+  // DELETE PRODUCT
+  // =========================
+  const deleteProduct = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to remove this handcrafted piece from your collection?"
+    );
 
-    const deleteProduct = async (id) => {
-        const confirmDelete = window.confirm(
-            "Are you sure you want to delete this product?"
-        );
+    if (!confirmDelete) return;
 
-        if (!confirmDelete) return;
+    try {
+      await api.delete(`/products/${id}`);
+      setProducts((prev) => prev.filter((p) => p._id !== id));
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert(error.response?.data?.message || "Failed to delete product");
+    }
+  };
 
-        try {
-            await api.delete(`/products/${id}`);
+  return (
+    <div className="min-h-screen bg-[#17120f] text-[#f5efe8]">
+      <Navbar />
 
-            // Remove deleted product from UI
-            setProducts((prevProducts) =>
-                prevProducts.filter((product) => product._id !== id)
-            );
-        } catch (error) {
-            console.error("Delete error:", error);
-            alert(error.response?.data?.message || "Failed to delete product");
-        }
-    };
+      <main className="mx-auto max-w-[1400px] px-5 py-8 md:px-8 lg:py-12">
+        {/* ================= WELCOME BANNER ================= */}
+        <section className="relative mb-10 overflow-hidden rounded-3xl border border-[#d4af37]/20 bg-gradient-to-br from-[#281e17] via-[#211914] to-[#1b1512] p-8 md:p-12 shadow-2xl">
+          <div className="absolute -right-24 -top-32 h-80 w-80 rounded-full bg-[#d4af37]/[0.08] blur-3xl" />
+          <div className="absolute -bottom-32 right-1/4 h-64 w-64 rounded-full bg-[#d4af37]/[0.04] blur-3xl" />
 
-    // =========================
-    // LOGOUT
-    // =========================
+          <div className="relative flex flex-col justify-between gap-6 md:flex-row md:items-center">
+            <div>
+              <div className="mb-2 flex items-center gap-2">
+                <Sparkles size={14} className="text-[#d4af37]" />
+                <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[#d4af37]">
+                  Master Studio
+                </span>
+              </div>
 
-    const handleLogout = () => {
-        logout();
-        navigate("/");
-    };
+              <h1 className="font-serif text-3xl md:text-5xl text-[#f5efe8]">
+                Welcome back, {user?.name || "Artisan"}
+              </h1>
 
-    return (
-        <div className="min-h-screen bg-[#1c1713] text-[#f5efe8]">
-            {/* Your sidebar/header remains the same */}
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-[#8d8177]">
+                Manage your creations, track buyer orders, and share your ancestral craft with the world.
+              </p>
+            </div>
 
-            <main className="min-h-screen lg:ml-[260px]">
-                <header className="flex h-[78px] items-center justify-between border-b border-white/[0.07] px-5 md:px-8">
-                    <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-[#625950]">
-                            Artisan Dashboard
-                        </p>
-                    </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                to="/artisan/orders"
+                className="flex items-center gap-2 rounded-xl border border-white/[0.1] bg-white/[0.04] px-5 py-3.5 text-sm font-semibold text-[#f5efe8] transition hover:border-[#d4af37]/40 hover:bg-white/[0.08]"
+              >
+                <ClipboardList size={16} className="text-[#d4af37]" />
+                Manage Orders ({stats.totalOrders})
+              </Link>
 
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full border border-[#d4af37]/20 bg-[#d4af37]/10">
-                            <User size={16} className="text-[#d4af37]" />
+              <Link
+                to="/add-product"
+                className="flex items-center gap-2 rounded-xl bg-[#d4af37] px-6 py-3.5 text-sm font-semibold text-[#17120f] shadow-[0_8px_30px_rgba(212,175,55,0.15)] transition duration-200 hover:bg-[#e7c85c]"
+              >
+                <Plus size={17} />
+                Add Product
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ================= STATS ================= */}
+        <section className="mb-10 grid grid-cols-1 gap-5 sm:grid-cols-3">
+          {/* TOTAL PRODUCTS */}
+          <div className="rounded-2xl border border-white/[0.08] bg-[#211b17] p-6 shadow-md transition hover:-translate-y-1 hover:border-[#d4af37]/30">
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#d4af37]/10 text-[#d4af37]">
+                <Package size={22} />
+              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#5f554e]">
+                Collection
+              </span>
+            </div>
+
+            <p className="mt-5 text-xs text-[#8d8177]">Total Products</p>
+            <p className="mt-1 font-serif text-3xl text-[#f5efe8]">
+              {products.length}
+            </p>
+          </div>
+
+          {/* TOTAL ORDERS */}
+          <Link
+            to="/artisan/orders"
+            className="rounded-2xl border border-white/[0.08] bg-[#211b17] p-6 shadow-md transition hover:-translate-y-1 hover:border-[#d4af37]/30 block"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#d4af37]/10 text-[#d4af37]">
+                <ShoppingBag size={22} />
+              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#5f554e]">
+                Sales
+              </span>
+            </div>
+
+            <p className="mt-5 text-xs text-[#8d8177]">Total Orders</p>
+            <p className="mt-1 font-serif text-3xl text-[#f5efe8]">
+              {stats.totalOrders}
+            </p>
+          </Link>
+
+          {/* TOTAL REVENUE */}
+          <div className="rounded-2xl border border-white/[0.08] bg-[#211b17] p-6 shadow-md transition hover:-translate-y-1 hover:border-[#d4af37]/30">
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#d4af37]/10 text-[#d4af37]">
+                <IndianRupee size={22} />
+              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-[#5f554e]">
+                Earnings
+              </span>
+            </div>
+
+            <p className="mt-5 text-xs text-[#8d8177]">Total Revenue</p>
+            <p className="mt-1 font-serif text-3xl text-[#d4af37]">
+              ₹{stats.totalRevenue.toLocaleString("en-IN")}
+            </p>
+          </div>
+        </section>
+
+        {/* ================= PRODUCTS TABLE ================= */}
+        <section>
+          <div className="mb-6 flex items-end justify-between border-b border-white/[0.08] pb-4">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#d4af37]">
+                Artisan Studio Catalog
+              </span>
+              <h2 className="mt-1 font-serif text-2xl md:text-3xl text-[#f5efe8]">
+                My Handcrafted Pieces
+              </h2>
+            </div>
+
+            <Link
+              to="/add-product"
+              className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#d4af37] transition hover:text-[#e7c85c]"
+            >
+              <Plus size={14} />
+              Add Product
+            </Link>
+          </div>
+
+          {/* LOADING */}
+          {loading && (
+            <div className="flex min-h-[300px] flex-col items-center justify-center rounded-3xl border border-white/[0.08] bg-[#211b17]">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#d4af37]/20 border-t-[#d4af37]" />
+              <p className="mt-4 text-xs text-[#8d8177]">Loading your collection...</p>
+            </div>
+          )}
+
+          {/* EMPTY */}
+          {!loading && products.length === 0 && (
+            <div className="rounded-3xl border border-dashed border-[#d4af37]/20 bg-[#211b17] px-5 py-24 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#d4af37]/10 text-[#d4af37]">
+                <Package size={28} />
+              </div>
+              <h3 className="mt-6 font-serif text-2xl text-[#f5efe8]">
+                Your collection is waiting
+              </h3>
+              <p className="mx-auto mt-2 max-w-md text-sm text-[#8d8177]">
+                Add your first handcrafted artifact to make it discoverable in the KalaSetu marketplace.
+              </p>
+              <Link
+                to="/add-product"
+                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-[#d4af37] px-6 py-3.5 text-sm font-semibold text-[#17120f] transition hover:bg-[#e7c85c]"
+              >
+                <Plus size={16} />
+                Add Your First Creation
+              </Link>
+            </div>
+          )}
+
+          {/* TABLE */}
+          {!loading && products.length > 0 && (
+            <div className="overflow-hidden rounded-3xl border border-white/[0.08] bg-[#211b17]">
+              {/* TABLE HEADER */}
+              <div className="hidden grid-cols-[2fr_1fr_1fr_160px] gap-4 border-b border-white/[0.06] bg-white/[0.02] px-6 py-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#706761] md:grid">
+                <span>Product</span>
+                <span>Price</span>
+                <span>Stock</span>
+                <span className="text-right">Actions</span>
+              </div>
+
+              {/* ROWS */}
+              <div className="divide-y divide-white/[0.06]">
+                {products.map((product) => {
+                  const displayImg = Array.isArray(product.image) ? product.image[0] : product.image;
+
+                  return (
+                    <div
+                      key={product._id}
+                      className="grid grid-cols-1 gap-4 p-5 transition hover:bg-white/[0.02] md:grid-cols-[2fr_1fr_1fr_160px] md:items-center md:px-6"
+                    >
+                      {/* PRODUCT */}
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#2a211a] border border-white/[0.08]">
+                          {displayImg ? (
+                            <img src={displayImg} alt={product.title} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-xs text-[#8d8177]">
+                              Piece
+                            </div>
+                          )}
                         </div>
+
+                        <div className="min-w-0">
+                          <h4 className="font-serif text-base text-[#f5efe8] truncate">{product.title}</h4>
+                          <p className="mt-0.5 text-xs text-[#8d8177]">
+                            {product.category} {product.artForm ? `• ${product.artForm}` : ""}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* PRICE */}
+                      <div>
+                        <span className="text-xs text-[#706761] md:hidden">Price: </span>
+                        <span className="font-serif text-base font-semibold text-[#f5efe8]">
+                          ₹{Number(product.price).toLocaleString("en-IN")}
+                        </span>
+                      </div>
+
+                      {/* STOCK */}
+                      <div>
+                        <span className="text-xs text-[#706761] md:hidden">Stock: </span>
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            product.stock <= 2
+                              ? "bg-amber-500/10 text-amber-300 border border-amber-500/20"
+                              : "bg-white/[0.05] text-[#c8bfb6]"
+                          }`}
+                        >
+                          {product.stock} in stock
+                        </span>
+                      </div>
+
+                      {/* ACTIONS */}
+                      <div className="flex items-center gap-2 md:justify-end">
+                        <button
+                          onClick={() => navigate(`/products/${product._id}`)}
+                          title="View on Marketplace"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] text-[#8d8177] transition hover:border-[#d4af37]/40 hover:text-[#d4af37]"
+                        >
+                          <Eye size={15} />
+                        </button>
 
                         <button
-                            onClick={handleLogout}
-                            className="text-xs text-[#8d8177] hover:text-[#d4af37]"
+                          onClick={() => navigate(`/products/${product._id}/edit`)}
+                          title="Edit creation"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] text-[#8d8177] transition hover:border-[#d4af37]/40 hover:text-[#d4af37]"
                         >
-                            Logout
+                          <Pencil size={15} />
                         </button>
-                    </div>
-                </header>
 
-                <div className="px-5 py-8 md:px-8 lg:px-10">
-                    {/* ================= HEADER ================= */}
-                    <div className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-                        <div>
-                            <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[#d4af37]">
-                                Welcome back
-                            </p>
-                            <h1 className="font-serif text-3xl md:text-4xl">
-                                Your Artisan Studio
-                            </h1>
-                            <p className="mt-2 text-sm text-[#8d8177]">
-                                Manage your creations and grow your craft.
-                            </p>
-                        </div>
-
-                        <Link
-                            to="/add-product"
-                            className="flex w-fit items-center gap-2 rounded-lg bg-[#d4af37] px-5 py-3 text-sm font-semibold text-[#1c1713] transition hover:bg-[#e7c85c]"
+                        <button
+                          onClick={() => deleteProduct(product._id)}
+                          title="Delete creation"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] text-[#8d8177] transition hover:border-red-500/40 hover:text-red-400"
                         >
-                            <Plus size={17} />
-                            Add Product
-                        </Link>
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
                     </div>
-
-                    {/* ================= STAT ================= */}
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                        <div className="rounded-xl border border-white/[0.07] bg-white/[0.04] p-5">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d4af37]/10">
-                                <Package size={18} className="text-[#d4af37]" />
-                            </div>
-                            <p className="mt-5 text-sm text-[#8d8177]">
-                                Total Products
-                            </p>
-                            <p className="mt-1 font-serif text-3xl">
-                                {products.length}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl border border-white/[0.07] bg-white/[0.04] p-5">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d4af37]/10">
-                                <ShoppingBag size={18} className="text-[#d4af37]" />
-                            </div>
-                            <p className="mt-5 text-sm text-[#8d8177]">
-                                Total Orders
-                            </p>
-                            <p className="mt-1 font-serif text-3xl">0</p>
-                        </div>
-
-                        <div className="rounded-xl border border-white/[0.07] bg-white/[0.04] p-5">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#d4af37]/10">
-                                <IndianRupee size={18} className="text-[#d4af37]" />
-                            </div>
-                            <p className="mt-5 text-sm text-[#8d8177]">
-                                Total Revenue
-                            </p>
-                            <p className="mt-1 font-serif text-3xl">₹0</p>
-                        </div>
-                    </div>
-
-                    {/* ================= PRODUCTS ================= */}
-                    <div className="mt-10">
-                        <div className="mb-5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.18em] text-[#d4af37]">
-                                    Your Collection
-                                </p>
-                                <h2 className="mt-1 font-serif text-2xl">
-                                    My Products
-                                </h2>
-                            </div>
-
-                            <Link
-                                to="/add-product"
-                                className="flex items-center gap-2 text-sm text-[#d4af37] hover:text-[#e7c85c]"
-                            >
-                                <Plus size={15} />
-                                Add Product
-                            </Link>
-                        </div>
-
-                        {/* ================= LOADING ================= */}
-                        {loading && (
-                            <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] px-5 py-16 text-center">
-                                <p className="text-sm text-[#8d8177]">
-                                    Loading your products...
-                                </p>
-                            </div>
-                        )}
-
-                        {/* ================= NO PRODUCTS ================= */}
-                        {!loading && products.length === 0 && (
-                            <div className="rounded-xl border border-dashed border-[#d4af37]/20 bg-[#d4af37]/[0.03] px-5 py-16 text-center">
-                                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#d4af37]/10">
-                                    <Package size={24} className="text-[#d4af37]" />
-                                </div>
-
-                                <h3 className="mt-5 font-serif text-2xl">
-                                    Your collection is empty
-                                </h3>
-
-                                <p className="mx-auto mt-2 max-w-md text-sm text-[#8d8177]">
-                                    Start showcasing your craft by adding your
-                                    first handmade product.
-                                </p>
-
-                                <Link
-                                    to="/add-product"
-                                    className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#d4af37] px-6 py-3 text-sm font-semibold text-[#1c1713] transition hover:bg-[#e7c85c]"
-                                >
-                                    <Plus size={17} />
-                                    Add Your First Product
-                                </Link>
-                            </div>
-                        )}
-
-                        {/* ================= PRODUCTS ================= */}
-                        {!loading && products.length > 0 && (
-                            <div className="overflow-hidden rounded-xl border border-white/[0.07]">
-                                <div className="hidden grid-cols-[2fr_1fr_1fr_140px] gap-4 border-b border-white/[0.07] bg-white/[0.025] px-5 py-4 text-[10px] uppercase tracking-[0.15em] text-[#625950] md:grid">
-                                    <p>Product</p>
-                                    <p>Price</p>
-                                    <p>Stock</p>
-                                    <p className="text-right">Actions</p>
-                                </div>
-
-                                {products.map((product) => (
-                                    <div
-                                        key={product._id}
-                                        className="grid grid-cols-1 gap-4 border-b border-white/[0.06] px-5 py-5 last:border-0 md:grid-cols-[2fr_1fr_1fr_140px] md:items-center"
-                                    >
-                                        {/* Product */}
-                                        <div className="flex items-center gap-4">
-                                            <img
-                                                src={product.image?.[0]}
-                                                alt={product.title}
-                                                className="h-16 w-16 rounded-lg object-cover"
-                                            />
-
-                                            <div>
-                                                <h3 className="font-serif text-base">
-                                                    {product.title}
-                                                </h3>
-                                                <p className="mt-1 text-xs text-[#8d8177]">
-                                                    {product.category}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        {/* Price */}
-                                        <p className="text-sm text-[#c8bfb6]">
-                                            ₹{product.price}
-                                        </p>
-
-                                        {/* Stock */}
-                                        <p className="text-sm text-[#c8bfb6]">
-                                            {product.stock} units
-                                        </p>
-
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-2 md:justify-end">
-                                            <button
-                                                onClick={() =>
-                                                    navigate(`/products/${product._id}`)
-                                                }
-                                                className="flex h-8 w-8 items-center justify-center rounded-md border border-white/[0.08] text-[#8d8177] hover:text-[#d4af37]"
-                                            >
-                                                <Eye size={14} />
-                                            </button>
-
-                                            <button
-                                                onClick={() =>
-                                                    navigate(`/products/${product._id}/edit`)
-                                                }
-                                                className="flex h-8 w-8 items-center justify-center rounded-md border border-white/[0.08] text-[#8d8177] hover:text-[#d4af37]"
-                                            >
-                                                <Pencil size={14} />
-                                            </button>
-
-                                            <button
-                                                onClick={() => deleteProduct(product._id)}
-                                                className="flex h-8 w-8 items-center justify-center rounded-md border border-white/[0.08] text-[#8d8177] hover:text-red-300"
-                                            >
-                                                <Trash2 size={14} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </main>
-        </div>
-    );
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
+  );
 };
 
 export default ArtisanDashboard;

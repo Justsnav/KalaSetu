@@ -465,7 +465,7 @@ export default function LandingPage() {
 
 
                         <Link
-                            to="/explore"
+                            to="/marketplace"
                             className="rounded-sm border border-[#554a42] px-8 py-3.5 text-sm font-semibold uppercase tracking-wider text-[#c8bfb6] transition-colors hover:border-[#8d8177] hover:text-[#f5efe8]"
                         >
                             Explore First
